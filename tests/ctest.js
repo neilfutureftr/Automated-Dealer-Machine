@@ -62,7 +62,7 @@ const [user, bump] = await PublicKey.findProgramAddress(
     );
 console.log("Done")
 console.log("Trying to create user ");
-if (false){
+if (true){
 await program.rpc.createUser( bump, {
       accounts: {
         user,
