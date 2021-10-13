@@ -19,7 +19,7 @@ let provider=anchor.Provider.env();
 anchor.setProvider(provider);
 const idl = JSON.parse(require('fs').readFileSync('../target/idl/ftrDistributor.json', 'utf8'));
 // Address of the deployed pr
-const programId = new anchor.web3.PublicKey('D6CJs1GE1MZqEV4kGnbWzvYJUDnQQ9iyEnpk4LdgQuBq');
+const programId = new anchor.web3.PublicKey('Bi3uB5poeGcEk2EeakBofxUBFDx5YCeH93fWhNfXyA6p');
 const program = new anchor.Program(idl, programId);
 // Configure the client to use the local cluster.
 // Configure the client to use the local cluster.
@@ -81,6 +81,9 @@ const initial_FTR_in_account = new anchor.BN(10000*ftr_token_multiplier);
 const initial_USDC_in_account = new anchor.BN(10000*usdc_token_multiplier);
 const initial_FR_in_pool = new anchor.BN(100*fr_token_multiplier);
 
+
+const external_client_pk=new anchor.web3.PublicKey("97K7ZwZXNdwwBvrwGZE5jz9PA69Cyao6duWJxJJive2L");
+    
 await delay(5000);
 
 poolSigner = _poolSigner;
@@ -90,6 +93,13 @@ userFtr = await createLinkedTokenAccount(
   ftrMint,
   provider.wallet.publicKey
 );
+
+externalUserFtr = await createTokenAccount(
+  provider,
+  ftrMint,
+  external_client_pk
+);
+fs.writeFile('EUFtr_pk.txt', externalUserFtr.toString(),(err) => {if (err) throw err; }) 
 
 poolFtr = await createTokenAccount(
   provider,
@@ -102,6 +112,13 @@ poolFtr = await createTokenAccount(
 
 await fakeFTRMintToken.mintTo(
       userFtr,
+      provider.wallet.publicKey,
+      [],
+      initial_FTR_in_account.toString(),
+);
+
+await fakeFTRMintToken.mintTo(
+      externalUserFtr,
       provider.wallet.publicKey,
       [],
       initial_FTR_in_account.toString(),
@@ -122,15 +139,40 @@ poolFixedRate = await createTokenAccount(
 
 
 
+externalUserFixedRate = await createTokenAccount(
+  provider,
+  fixedRateMint,
+  external_client_pk
+);
+fs.writeFile('EUFr_pk.txt', externalUserFixedRate.toString(),(err) => {if (err) throw err; }) 
+
+
+
 userUsdc = await createLinkedTokenAccount(
   provider,
   usdcMint,
   provider.wallet.publicKey
 );
+
+externalUserUsdc = await createLinkedTokenAccount(
+  provider,
+  usdcMint,
+  external_client_pk
+);
+fs.writeFile('EUUsdc_pk.txt', externalUserUsdc.toString(),(err) => {if (err) throw err; }) 
+
 const secondDeposit = new anchor.BN(24_000_672);
 
 await fakeUSDCMintToken.mintTo(
       userUsdc,
+      provider.wallet.publicKey,
+      [],
+      initial_USDC_in_account.toString(),
+);
+
+
+await fakeUSDCMintToken.mintTo(
+      externalUserUsdc,
       provider.wallet.publicKey,
       [],
       initial_USDC_in_account.toString(),
@@ -142,6 +184,13 @@ await fakeUSDCMintToken.mintTo(
 await delay(5000);
 await fakeFIXEDRMintToken.mintTo(
       poolFixedRate,
+      provider.wallet.publicKey,
+      [],
+      initial_FR_in_pool.toString(),
+);
+
+await fakeFIXEDRMintToken.mintTo(
+      externalUserFixedRate,
       provider.wallet.publicKey,
       [],
       initial_FR_in_pool.toString(),
@@ -277,7 +326,7 @@ console.log((userFixedRateAccount.amount/fr_token_multiplier).toString())
 
 
 
-console.log("----------PURCHASING 1.2 FIXED RATE -----------")
+console.log("----------PURCHASING 3 FIXED RATE -----------")
 
 let number_of_fr=3;
 const expected_usdc_to_spend=new anchor.BN(number_of_fr*fr_token_multiplier*fixed_rate_price_buy);
@@ -362,7 +411,7 @@ const number_of_contract_to_redeem = 1;
 
 const expected_FR_to_spend=new anchor.BN(number_of_contract_to_redeem*fr_token_multiplier/price_modifier_multiplier);
 
-console.log("-------------Redeeming Fixed Rate-----------")
+console.log("-------------Redeeming 1 Fixed Rate-----------")
 await delay(5000);
 try{
 await program.rpc.redeemFixedRate(expected_FR_to_spend,{

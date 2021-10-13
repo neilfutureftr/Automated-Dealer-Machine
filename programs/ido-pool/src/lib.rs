@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount, Transfer,SetAuthority};
 
-declare_id!("D6CJs1GE1MZqEV4kGnbWzvYJUDnQQ9iyEnpk4LdgQuBq");
+declare_id!("Bi3uB5poeGcEk2EeakBofxUBFDx5YCeH93fWhNfXyA6p");
 
 #[program]
 pub mod ftrDistributor {
@@ -68,7 +68,7 @@ pub mod ftrDistributor {
         Ok(())
     }
 
-
+    #[access_control(is_it_halted(&ctx.accounts.pool_account))]
     pub fn get_fixed_rate(
         ctx: Context<GetFixedRate>,
         usdc_to_send:u64,
@@ -524,11 +524,11 @@ pub struct RedeemFixedRate<'info> {
     #[account(mut)]
     pub pool_usdc: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut)]
+    #[account(mut,constraint = user_ftr.owner == *user_authority.key)]
     pub user_ftr: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(mut,constraint = user_usdc.owner == *user_authority.key)]
     pub user_usdc: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(mut,constraint = user_fixed_rate.owner == *user_authority.key)]
     pub user_fixed_rate: Box<Account<'info, TokenAccount>>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: AccountInfo<'info>,
@@ -538,7 +538,12 @@ pub struct RedeemFixedRate<'info> {
 
 #[derive(Accounts)]
 pub struct RetreiveUsdcNdCo<'info> {
-    #[account(mut, has_one = pool_usdc)]
+
+    #[account(signer)]
+    pub creator_authority: AccountInfo<'info>,
+
+
+    #[account(mut, has_one = pool_usdc,constraint = pool_account.distribution_authority== *creator_authority.key)]
     pub pool_account: Account<'info, PoolAccount>,
     #[account(
         seeds = [pool_fixed_rate.mint.as_ref()],
@@ -547,22 +552,18 @@ pub struct RetreiveUsdcNdCo<'info> {
     pool_signer: AccountInfo<'info>,
 
 
-    #[account(signer)]
-    pub creator_authority: AccountInfo<'info>,
-
-
-    #[account(mut)]
-    pub pool_ftr:  Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
-    pub pool_fixed_rate: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(mut, constraint = pool_usdc.owner == *pool_signer.key)]
     pub pool_usdc: Box<Account<'info, TokenAccount>>,
-
-    #[account(mut)]
+    #[account(mut, constraint = pool_ftr.owner == *pool_signer.key)]
+    pub pool_ftr: Box<Account<'info, TokenAccount>>,
+    #[account(mut, constraint = pool_fixed_rate.owner == *pool_signer.key)]
+    pub pool_fixed_rate: Box<Account<'info, TokenAccount>>,
+   
+    #[account(mut,constraint = creator_ftr.owner == *creator_authority.key)]
     pub creator_ftr: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(mut,constraint = creator_usdc.owner == *creator_authority.key)]
     pub creator_usdc: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(mut,constraint = creator_fixed_rate.owner == *creator_authority.key)]
     pub creator_fixed_rate: Box<Account<'info, TokenAccount>>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: AccountInfo<'info>,
@@ -573,7 +574,12 @@ pub struct RetreiveUsdcNdCo<'info> {
 
 #[derive(Accounts)]
 pub struct UpdatePriceNdCo<'info> {
-    #[account(mut, has_one = pool_usdc)]
+
+    #[account(signer)]
+    pub creator_authority: AccountInfo<'info>,
+
+
+    #[account(mut, has_one = pool_usdc,constraint = pool_account.distribution_authority== *creator_authority.key)]
     pub pool_account: Account<'info, PoolAccount>,
     #[account(
         seeds = [pool_fixed_rate.mint.as_ref()],
@@ -582,22 +588,21 @@ pub struct UpdatePriceNdCo<'info> {
     pool_signer: AccountInfo<'info>,
 
 
-    #[account(signer)]
-    pub creator_authority: AccountInfo<'info>,
 
 
-    #[account(mut)]
-    pub pool_ftr:  Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
-    pub pool_fixed_rate: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(mut, constraint = pool_usdc.owner == *pool_signer.key)]
     pub pool_usdc: Box<Account<'info, TokenAccount>>,
-
-    #[account(mut)]
+    #[account(mut, constraint = pool_ftr.owner == *pool_signer.key)]
+    pub pool_ftr: Box<Account<'info, TokenAccount>>,
+   
+    #[account(mut, constraint = pool_fixed_rate.owner == *pool_signer.key)]
+    pub pool_fixed_rate: Box<Account<'info, TokenAccount>>,
+   
+    #[account(mut,constraint = creator_ftr.owner == *creator_authority.key)]
     pub creator_ftr: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(mut,constraint = creator_usdc.owner == *creator_authority.key)]
     pub creator_usdc: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(mut,constraint = creator_fixed_rate.owner == *creator_authority.key)]
     pub creator_fixed_rate: Box<Account<'info, TokenAccount>>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: AccountInfo<'info>,
@@ -608,17 +613,17 @@ pub struct UpdatePriceNdCo<'info> {
 
 #[derive(Accounts)]
 pub struct FeedUsdcNdCo<'info> {
-    #[account(mut, has_one = pool_usdc)]
+    #[account(signer)]
+    pub creator_authority: AccountInfo<'info>,
+
+
+    #[account(mut, has_one = pool_usdc,constraint = pool_account.distribution_authority== *creator_authority.key)]
     pub pool_account: Account<'info, PoolAccount>,
     #[account(
         seeds = [pool_fixed_rate.mint.as_ref()],
         bump = pool_account.nonce,
     )]
     pool_signer: AccountInfo<'info>,
-
-
-    #[account(signer)]
-    pub creator_authority: AccountInfo<'info>,
 
 
     #[account(mut)]
@@ -628,11 +633,11 @@ pub struct FeedUsdcNdCo<'info> {
     #[account(mut)]
     pub pool_usdc: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut)]
+     #[account(mut,constraint = creator_ftr.owner == *creator_authority.key)]
     pub creator_ftr: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(mut,constraint = creator_usdc.owner == *creator_authority.key)]
     pub creator_usdc: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(mut,constraint = creator_fixed_rate.owner == *creator_authority.key)]
     pub creator_fixed_rate: Box<Account<'info, TokenAccount>>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: AccountInfo<'info>,
@@ -711,22 +716,7 @@ pub struct User {
 
 #[error]
 pub enum ErrorCode {
-    #[msg("IDO must start in the future")]
-    IdoFuture,
-    #[msg("We get there")]
-    CheckError,
-    #[msg("IDO times are non-sequential")]
-    SeqTimes,
-    #[msg("Already existing vote please cancel before resubmitting a vote")]
-    ExistingVote,
-    #[msg("IDO has not started")]
-    StartIdoTime,
-    #[msg("Deposits period has ended")]
-    EndDepositsTime,
-    #[msg("IDO has ended")]
-    EndIdoTime,
-    #[msg("IDO has not finished yet")]
-    IdoNotOver,
+
     #[msg("Insufficient USDC in your wallet")]
     LowUsdcUser,
     #[msg("Insufficient USDC in the pool wallet")]
@@ -740,15 +730,18 @@ pub enum ErrorCode {
     #[msg("Insufficient FTR in the pool wallet")]
     LowFTRPool,
 
-    #[msg("No vote or locked funds registered at your address")]
-    NoVote,
-    #[msg("Insufficient FTR")]
-    LowFTR,
-    #[msg("Insufficient redeemable tokens")]
-    LowRedeemable,
-    #[msg("USDC total and redeemable total don't match")]
-    UsdcNotEqRedeem,
+    #[msg("Platform is halted")]
+    Halted,
+
     #[msg("Given nonce is invalid")]
-InvalidNonce,
+    InvalidNonce,
     Unknown,
+}
+
+fn is_it_halted(pool_account: &PoolAccount) -> ProgramResult {
+   
+    if pool_account.halted {
+        return Err(ErrorCode::Halted.into());
+    }
+    Ok(())
 }

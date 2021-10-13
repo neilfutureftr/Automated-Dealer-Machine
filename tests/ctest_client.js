@@ -36,27 +36,26 @@ async function main(){
   const pk_ftrMint=new anchor.web3.PublicKey(require('fs').readFileSync('ftrMint_pk.txt', 'utf8'));
   const pk_usdMint=new anchor.web3.PublicKey(require('fs').readFileSync('usdcMint_pk.txt', 'utf8'));
   const pk_fixedRateMint=new anchor.web3.PublicKey(require('fs').readFileSync('fixedRateMint_pk.txt', 'utf8'));
-  
+  const pk_poolAccount=new anchor.web3.PublicKey(require('fs').readFileSync('poolAccount_pk.txt', 'utf8'));
+  const pk_poolSignerAccount=new anchor.web3.PublicKey(require('fs').readFileSync('poolSignerAccount_pk.txt', 'utf8'));
+ 
 if (false){
   const pk_poolUsdc=new anchor.web3.PublicKey(require('fs').readFileSync('poolUsdc_pk.txt', 'utf8'));
   const pk_poolFtr=new anchor.web3.PublicKey(require('fs').readFileSync('poolFtr_pk.txt', 'utf8'));
   const pk_poolFixedRate=new anchor.web3.PublicKey(require('fs').readFileSync('poolFixedRate_pk.txt', 'utf8'));
 
 
-  const pk_userUsdc = await Token.getAssociatedTokenAddress(provider.wallet.publicKey, pk_ftrMint);
-  const pk_userFtr = await Token.getAssociatedTokenAddress(provider.wallet.publicKey, pk_usdMint);
+  const pk_userUsdc = await Token.getAssociatedTokenAddress(provider.wallet.publicKey, pk_usdMint);
+  const pk_userFtr = await Token.getAssociatedTokenAddress(provider.wallet.publicKey, pk_ftrMint);
   const pk_userFixedRate = await Token.getAssociatedTokenAddress(provider.wallet.publicKey, pk_fixedRateMint);
 }  
-  const pk_poolAccount=new anchor.web3.PublicKey(require('fs').readFileSync('poolAccount_pk.txt', 'utf8'));
-  const pk_poolSignerAccount=new anchor.web3.PublicKey(require('fs').readFileSync('poolSignerAccount_pk.txt', 'utf8'));
 
+  const pk_userUsdc = await Token.getAssociatedTokenAddress(provider.wallet.publicKey, pk_usdMint);
+  const pk_userFtr = await Token.getAssociatedTokenAddress(provider.wallet.publicKey, pk_ftrMint);
+  const pk_userFixedRate = await Token.getAssociatedTokenAddress(provider.wallet.publicKey, pk_fixedRateMint);
 
-
-    const pk_userUsdc=new anchor.web3.PublicKey(require('fs').readFileSync('userUsdc_pk.txt', 'utf8'));
     const pk_poolUsdc=new anchor.web3.PublicKey(require('fs').readFileSync('poolUsdc_pk.txt', 'utf8'));
-    const pk_userFtr=new anchor.web3.PublicKey(require('fs').readFileSync('userFtr_pk.txt', 'utf8'));
     const pk_poolFtr=new anchor.web3.PublicKey(require('fs').readFileSync('poolFtr_pk.txt', 'utf8'));
-    const pk_userFixedRate=new anchor.web3.PublicKey(require('fs').readFileSync('userFixedRate_pk.txt', 'utf8'));
     const pk_poolFixedRate=new anchor.web3.PublicKey(require('fs').readFileSync('poolFixedRate_pk.txt', 'utf8'));
 
 
